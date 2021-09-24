@@ -1,16 +1,18 @@
 ﻿@page "/fetchdata"
 @using BlazorOdataDemo.Shared
 @using BlazorOdataClient
-@inject HttpClient Http
+@inject IHttpClientFactory HttpClientFactory
 
 <PageTitle>Weather forecast</PageTitle>
 
 <h1>Weather forecast</h1>
+<div class="input-group mb-3">
+    <span class="input-group-text">Record Quantity</span>
+    <input type="number" class="form-control" aria-describedby="button-create" @bind-value="@seedCount" disabled="@seedDisabled" min="0">
+    <button class="btn btn-outline-secondary" type="button" id="button-create" @onclick="Create" disabled="@seedDisabled">Create</button>
+</div>
 
-<input type="number" @bind-value="@seedCount" disabled="@seedDisabled" min="0" />
-<button @onclick="Create" disabled="@seedDisabled">Create</button>
-
-<p>This component demonstrates a virtualized list from and OData endpoint on the server.</p>
+<p>This component demonstrates a virtualized list from an OData endpoint on the server.</p>
 
 <table class="table">
     <thead>
@@ -22,7 +24,7 @@
         </tr>
     </thead>
     <tbody>
-        <OdataVirtualize @ref="view" TItem="WeatherForecast" EndPoint="WeatherForecast">
+        <OdataVirtualize @ref="view" TItem="WeatherForecast" EndPoint="WeatherForecast" OverscanCount="4">
 
             <tr>
                 <td>@context.Date.DateTime.ToShortDateString()</td>
@@ -43,8 +45,9 @@
 
     async Task Create()
     {
+        var http = HttpClientFactory.CreateClient("Server.Api");
         seedDisabled = true;
-        await Http.PostAsJsonAsync("WeatherForecast", seedCount);
+        await http.PostAsJsonAsync("WeatherForecast", seedCount);
         seedDisabled = false;
         await view.RefreshDataAsync();
     }

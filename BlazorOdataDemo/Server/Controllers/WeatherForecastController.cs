@@ -18,6 +18,7 @@ namespace BlazorOdataDemo.Server.Controllers
         public WeatherForecastController(ApplicationDbContext db, ILogger<WeatherForecastController> logger)
         {
             this.db = db;
+            db.Database.EnsureCreated();
             _logger = logger;
         }
 
@@ -25,12 +26,13 @@ namespace BlazorOdataDemo.Server.Controllers
         [EnableQuery]
         public IQueryable<WeatherForecast> Get() => db.WeatherForecasts;
 
+
         [HttpPost]
         public async Task Post([FromBody] int quantity)
         {
             const int batchSize = 1000;
             var i = 0;
-var            count = db.WeatherForecasts.Count();
+            var count = db.WeatherForecasts.Count();
             do
             {
                 if (count > quantity)
@@ -38,7 +40,7 @@ var            count = db.WeatherForecasts.Count();
                     var wf = db.WeatherForecasts.Take(Math.Min(count - quantity, batchSize)).ToList();
                     db.RemoveRange(wf);
                     await db.SaveChangesAsync();
-                    count -= wf.Count;
+                    count = db.WeatherForecasts.Count();
                 }
                 else if (count < quantity)
                 {
