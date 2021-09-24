@@ -1,9 +1,17 @@
-using Microsoft.AspNetCore.ResponseCompression;
+using BlazorOdataDemo.Server;
+using BlazorOdataDemo.Server.Data;
+using Microsoft.AspNetCore.OData;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
 // Add services to the container.
 
+builder.Services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(connectionString));
+builder.Services.AddControllers().AddOData(options => options
+    .Select().Filter().OrderBy().SetMaxTop(maxTopValue: 100).SkipToken().Count()
+    .AddRouteComponents(routePrefix: "odata", OdataConfig.GetEdmModel()));
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
 

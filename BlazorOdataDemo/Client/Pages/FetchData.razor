@@ -1,47 +1,51 @@
 ﻿@page "/fetchdata"
 @using BlazorOdataDemo.Shared
+@using BlazorOdataClient
 @inject HttpClient Http
 
 <PageTitle>Weather forecast</PageTitle>
 
 <h1>Weather forecast</h1>
 
-<p>This component demonstrates fetching data from the server.</p>
+<input type="number" @bind-value="@seedCount" disabled="@seedDisabled" min="0" />
+<button @onclick="Create" disabled="@seedDisabled">Create</button>
 
-@if (forecasts == null)
-{
-    <p><em>Loading...</em></p>
-}
-else
-{
-    <table class="table">
-        <thead>
+<p>This component demonstrates a virtualized list from and OData endpoint on the server.</p>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Date</th>
+            <th>Temp. (C)</th>
+            <th>Temp. (F)</th>
+            <th>Summary</th>
+        </tr>
+    </thead>
+    <tbody>
+        <OdataVirtualize @ref="view" TItem="WeatherForecast" EndPoint="WeatherForecast">
+
             <tr>
-                <th>Date</th>
-                <th>Temp. (C)</th>
-                <th>Temp. (F)</th>
-                <th>Summary</th>
+                <td>@context.Date.DateTime.ToShortDateString()</td>
+                <td>@context.TemperatureC</td>
+                <td>@context.TemperatureF</td>
+                <td>@context.Summary</td>
             </tr>
-        </thead>
-        <tbody>
-            @foreach (var forecast in forecasts)
-            {
-                <tr>
-                    <td>@forecast.Date.ToShortDateString()</td>
-                    <td>@forecast.TemperatureC</td>
-                    <td>@forecast.TemperatureF</td>
-                    <td>@forecast.Summary</td>
-                </tr>
-            }
-        </tbody>
-    </table>
-}
+
+        </OdataVirtualize>
+    </tbody>
+</table>
+
 
 @code {
-    private WeatherForecast[]? forecasts;
+    int seedCount = 5000;
+    bool seedDisabled = false;
+    OdataVirtualize<WeatherForecast>? view;
 
-    protected override async Task OnInitializedAsync()
+    async Task Create()
     {
-        forecasts = await Http.GetFromJsonAsync<WeatherForecast[]>("WeatherForecast");
+        seedDisabled = true;
+        await Http.PostAsJsonAsync("WeatherForecast", seedCount);
+        seedDisabled = false;
+        await view.RefreshDataAsync();
     }
 }

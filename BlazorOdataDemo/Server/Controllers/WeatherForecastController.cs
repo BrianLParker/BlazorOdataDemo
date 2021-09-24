@@ -1,5 +1,7 @@
+using BlazorOdataDemo.Server.Data;
 using BlazorOdataDemo.Shared;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.OData.Query;
 
 namespace BlazorOdataDemo.Server.Controllers
 {
@@ -7,28 +9,54 @@ namespace BlazorOdataDemo.Server.Controllers
     [Route("[controller]")]
     public class WeatherForecastController : ControllerBase
     {
-        private static readonly string[] Summaries = new[]
-        {
-        "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-    };
-
+        private static readonly string[] Summaries = new[] {
+            "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
+        };
+        private readonly ApplicationDbContext db;
         private readonly ILogger<WeatherForecastController> _logger;
 
-        public WeatherForecastController(ILogger<WeatherForecastController> logger)
+        public WeatherForecastController(ApplicationDbContext db, ILogger<WeatherForecastController> logger)
         {
+            this.db = db;
             _logger = logger;
         }
 
         [HttpGet]
-        public IEnumerable<WeatherForecast> Get()
+        [EnableQuery]
+        public IQueryable<WeatherForecast> Get() => db.WeatherForecasts;
+
+        [HttpPost]
+        public async Task Post([FromBody] int quantity)
         {
-            return Enumerable.Range(1, 5).Select(index => new WeatherForecast
+            const int batchSize = 1000;
+            var i = 0;
+var            count = db.WeatherForecasts.Count();
+            do
             {
-                Date = DateTime.Now.AddDays(index),
-                TemperatureC = Random.Shared.Next(-20, 55),
-                Summary = Summaries[Random.Shared.Next(Summaries.Length)]
-            })
-            .ToArray();
+                if (count > quantity)
+                {
+                    var wf = db.WeatherForecasts.Take(Math.Min(count - quantity, batchSize)).ToList();
+                    db.RemoveRange(wf);
+                    await db.SaveChangesAsync();
+                    count -= wf.Count;
+                }
+                else if (count < quantity)
+                {
+                    var wf = new WeatherForecast
+                    {
+                        Date = DateTime.Now.AddDays(i++),
+                        TemperatureC = Random.Shared.Next(-20, 55),
+                        Summary = Summaries[Random.Shared.Next(Summaries.Length)]
+                    };
+                    db.Add(wf);
+                    count ++;
+                    if (i % batchSize == 0)
+                    {
+                        await db.SaveChangesAsync();
+                    }
+                }
+            } while (count != quantity);
+            await db.SaveChangesAsync();
         }
     }
 }
