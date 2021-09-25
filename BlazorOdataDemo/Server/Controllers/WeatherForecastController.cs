@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.OData.Query;
 namespace BlazorOdataDemo.Server.Controllers
 {
     [ApiController]
-    [Route("[controller]")]
+    [Route("api/[controller]")]
     public class WeatherForecastController : ControllerBase
     {
         private static readonly string[] Summaries = new[] {
@@ -25,7 +25,6 @@ namespace BlazorOdataDemo.Server.Controllers
         [HttpGet]
         [EnableQuery]
         public IQueryable<WeatherForecast> Get() => db.WeatherForecasts;
-
 
         [HttpPost]
         public async Task Post([FromBody] int quantity)
@@ -51,7 +50,7 @@ namespace BlazorOdataDemo.Server.Controllers
                         Summary = Summaries[Random.Shared.Next(Summaries.Length)]
                     };
                     db.Add(wf);
-                    count ++;
+                    count++;
                     if (i % batchSize == 0)
                     {
                         await db.SaveChangesAsync();

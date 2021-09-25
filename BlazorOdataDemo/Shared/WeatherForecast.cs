@@ -1,9 +1,11 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using Microsoft.EntityFrameworkCore;
 
 namespace BlazorOdataDemo.Shared;
 
 [Display(Name = "Weather Forecasts", Description = "Weather Forecasts")]
+[Index(nameof(Date))]
 public class WeatherForecast
 {
     [Key]

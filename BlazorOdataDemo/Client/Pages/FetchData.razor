@@ -6,10 +6,18 @@
 <PageTitle>Weather forecast</PageTitle>
 
 <h1>Weather forecast</h1>
+
 <div class="input-group mb-3">
     <span class="input-group-text">Record Quantity</span>
-    <input type="number" class="form-control" aria-describedby="button-create" @bind-value="@seedCount" disabled="@seedDisabled" min="0">
-    <button class="btn btn-outline-secondary" type="button" id="button-create" @onclick="Create" disabled="@seedDisabled">Create</button>
+    <input type="number"
+           class="form-control"
+           aria-describedby="button-create"
+           @bind-value="@itemCount"
+           disabled="@updateDisabled" min="0">
+    <button class="btn btn-outline-secondary" type="button" id="button-create"
+            @onclick="Update" disabled="@updateDisabled">
+        Update
+    </button>
 </div>
 
 <p>This component demonstrates a virtualized list from an OData endpoint on the server.</p>
@@ -24,10 +32,14 @@
         </tr>
     </thead>
     <tbody>
-        <OdataVirtualize @ref="view" TItem="WeatherForecast" EndPoint="WeatherForecast" OverscanCount="4">
+        <OdataVirtualize @ref="view"
+                            TItem="WeatherForecast"
+                            EndPoint="WeatherForecast"
+                            QueryString="$OrderBy=Date desc"
+                            OverscanCount="4">
 
             <tr>
-                <td>@context.Date.DateTime.ToShortDateString()</td>
+                <td>@context.Date.LocalDateTime.ToShortDateString()</td>
                 <td>@context.TemperatureC</td>
                 <td>@context.TemperatureF</td>
                 <td>@context.Summary</td>
@@ -38,17 +50,4 @@
 </table>
 
 
-@code {
-    int seedCount = 5000;
-    bool seedDisabled = false;
-    OdataVirtualize<WeatherForecast>? view;
 
-    async Task Create()
-    {
-        var http = HttpClientFactory.CreateClient("Server.Api");
-        seedDisabled = true;
-        await http.PostAsJsonAsync("WeatherForecast", seedCount);
-        seedDisabled = false;
-        await view.RefreshDataAsync();
-    }
-}
