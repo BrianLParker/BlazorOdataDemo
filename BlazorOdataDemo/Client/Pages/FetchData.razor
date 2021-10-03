@@ -33,10 +33,10 @@
     </thead>
     <tbody>
         <OdataVirtualize @ref="view"
-                            TItem="WeatherForecast"
-                            EndPoint="WeatherForecast"
-                            QueryString="$OrderBy=Date desc"
-                            OverscanCount="4">
+                         TItem="WeatherForecast"
+                         EndPoint="WeatherForecast"
+                         QueryString="$OrderBy=Date desc"
+                         OverscanCount="4">
 
             <tr>
                 <td>@context.Date.LocalDateTime.ToShortDateString()</td>
@@ -48,6 +48,3 @@
         </OdataVirtualize>
     </tbody>
 </table>
-
-
-
